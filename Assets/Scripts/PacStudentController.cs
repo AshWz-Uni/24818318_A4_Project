@@ -4,17 +4,31 @@ using UnityEngine.Tilemaps;
 
 public class PacStudentController : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] private Tweener tweener;
-    [SerializeField] private float tilesPerSecond = 5f;
     [SerializeField] private Tilemap[] tilemaps;
+
+    [Header("Movement")]
+    [SerializeField] private float tilesPerSecond = 5f;
     [SerializeField] private Vector3 startPosition = new Vector3(1.5f, 4.5f, 0f);
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource movementAudio;
+    [SerializeField] private AudioClip pelletMoveClip; 
+    [SerializeField] private AudioClip pacStudentMoveClip;
+
     private Vector3 lastInput = Vector3.zero;      // last key pressed, never cleared
-    private Vector3 currentInput = Vector3.zero;   // direction we are actually travelling
+    private Vector3 currentInput = Vector3.zero;   // direction actually travelled
+    private bool wasMoving;
 
     void Start()
     {
+        if (tweener == null) tweener = FindFirstObjectByType<Tweener>();
+        if (tilemaps == null || tilemaps.Length == 0)
+            tilemaps = FindObjectsByType<Tilemap>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        
         transform.position = startPosition;
+        if (movementAudio != null) movementAudio.loop = true;
     }
 
     void Update()
@@ -31,13 +45,19 @@ public class PacStudentController : MonoBehaviour
 
         if (tweener.IsTweening(transform)) return;
 
+        if (wasMoving)
+        {
+            EatPellet(transform.position);
+            wasMoving = false;
+        }
+
         if (TryMove(lastInput))
         {
             currentInput = lastInput;
         }
-        else
+        else if (!TryMove(currentInput))
         {
-            TryMove(currentInput); 
+            StopAudio();
         }
     }
 
@@ -49,17 +69,59 @@ public class PacStudentController : MonoBehaviour
         Vector3 end = start + direction;
         if (!IsWalkable(end)) return false;
 
-        return tweener.AddTween(transform, start, end, 1f / tilesPerSecond);
+        if (!tweener.AddTween(transform, start, end, 1f / tilesPerSecond)) return false;
+
+        wasMoving = true;
+        PlayAudio(HasPellet(end));
+        return true;
     }
+
+    // ---------------- audio ----------------
+    void PlayAudio(bool aboutToEat)
+    {
+        if (movementAudio == null) return;
+
+        AudioClip wanted = aboutToEat ? pelletMoveClip : pacStudentMoveClip;
+        if (wanted == null) return;
+
+        if (movementAudio.clip != wanted || !movementAudio.isPlaying)
+        {
+            movementAudio.clip = wanted;
+            movementAudio.Play();
+        }
+    }
+
+    void StopAudio()
+    {
+        if (movementAudio != null && movementAudio.isPlaying) movementAudio.Stop();
+    }
+
+    // ---------------- tilemap queries ----------------
+    bool IsPellet(TileBase t) => t != null && (t.name == "Grid Tiles_4" || t.name == "Grid Tiles_5");
 
     bool IsWalkable(Vector3 worldPos)
     {
         foreach (Tilemap tm in tilemaps)
         {
             TileBase tile = tm.GetTile(tm.WorldToCell(worldPos));
-            if (tile != null && tile.name != "Grid Tiles_4" && tile.name != "Grid Tiles_5")
-                return false; // any tile that isn't a pellet is a wall
+            if (tile != null && !IsPellet(tile)) return false;   // non-pellet tile = wall
         }
         return true;
+    }
+
+    bool HasPellet(Vector3 worldPos)
+    {
+        foreach (Tilemap tm in tilemaps)
+            if (IsPellet(tm.GetTile(tm.WorldToCell(worldPos)))) return true;
+        return false;
+    }
+
+    void EatPellet(Vector3 worldPos)
+    {
+        foreach (Tilemap tm in tilemaps)
+        {
+            Vector3Int cell = tm.WorldToCell(worldPos);
+            if (IsPellet(tm.GetTile(cell))) tm.SetTile(cell, null);
+        }
     }
 }

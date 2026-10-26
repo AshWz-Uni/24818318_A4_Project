@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Tween : MonoBehaviour
+public class Tween
 {
     public Transform Target { get; set; }
     public Vector3 StartPos { get; set; }
