@@ -9896,11 +9896,17 @@ MonoBehaviour:
   - {fileID: 712902383}
   - {fileID: 1682747499}
   - {fileID: 1022833603}
+  animator: {fileID: 1785889440}
   tilesPerSecond: 5
   startPosition: {x: 1.5, y: 4.5, z: 0}
   movementAudio: {fileID: 1785889438}
   pelletMoveClip: {fileID: 8300000, guid: d05119841e38a1c4d8a59596a0feab05, type: 3}
   pacStudentMoveClip: {fileID: 8300000, guid: baf8e904064ab2046b7a58328201497d, type: 3}
+--- !u!95 &1785889440 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 320119998082287479, guid: add79359224428846bd9bbbc6709ae24, type: 3}
+  m_PrefabInstance: {fileID: 5387254461587682355}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1838194276
 GameObject:
   m_ObjectHideFlags: 0

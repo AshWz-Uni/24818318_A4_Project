@@ -7,6 +7,7 @@ public class PacStudentController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Tweener tweener;
     [SerializeField] private Tilemap[] tilemaps;
+    [SerializeField] private Animator animator;
 
     [Header("Movement")]
     [SerializeField] private float tilesPerSecond = 5f;
@@ -23,12 +24,15 @@ public class PacStudentController : MonoBehaviour
 
     void Start()
     {
-        if (tweener == null) tweener = FindFirstObjectByType<Tweener>();
+        if (tweener == null) tweener = FindAnyObjectByType<Tweener>();
+        if (animator == null) animator = GetComponentInChildren<Animator>();
         if (tilemaps == null || tilemaps.Length == 0)
-            tilemaps = FindObjectsByType<Tilemap>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            tilemaps = FindObjectsByType<Tilemap>(FindObjectsInactive.Include);
         
         transform.position = startPosition;
         if (movementAudio != null) movementAudio.loop = true;
+
+        SetAnimation(Vector3.right, false);
     }
 
     void Update()
@@ -58,6 +62,7 @@ public class PacStudentController : MonoBehaviour
         else if (!TryMove(currentInput))
         {
             StopAudio();
+            if (animator != null) animator.speed = 0f;
         }
     }
 
@@ -72,8 +77,24 @@ public class PacStudentController : MonoBehaviour
         if (!tweener.AddTween(transform, start, end, 1f / tilesPerSecond)) return false;
 
         wasMoving = true;
+        SetAnimation(direction, true);
         PlayAudio(HasPellet(end));
         return true;
+    }
+
+    // ---------------- animation ----------------
+    void SetAnimation(Vector3 direction, bool moving)
+    {
+        if (animator == null) return;
+
+        // Direction parameter: 0 = down, 1 = up, 2 = left, 3 = right
+        int value = 3;
+        if (direction == Vector3.down) value = 0;
+        else if (direction == Vector3.up) value = 1;
+        else if (direction == Vector3.left) value = 2;
+
+        animator.SetInteger("Direction", value);
+        animator.speed = moving ? 1f : 0f;
     }
 
     // ---------------- audio ----------------
