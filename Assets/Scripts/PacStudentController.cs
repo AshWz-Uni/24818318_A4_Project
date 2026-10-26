@@ -1,61 +1,65 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 
-public class NewMonoBehaviourScript : MonoBehaviour
+public class PacStudentController : MonoBehaviour
 {
-    [SerializeField] private Transform[] waypoints;
-    [SerializeField] private float speed = 3f;
     [SerializeField] private Tweener tweener;
-    [SerializeField] private Animator animator;
-    [SerializeField] private AudioSource movingAudioSource;
+    [SerializeField] private float tilesPerSecond = 5f;
+    [SerializeField] private Tilemap[] tilemaps;
+    [SerializeField] private Vector3 startPosition = new Vector3(1.5f, 4.5f, 0f);
 
-    private int currentWaypointIndex = 0;
+    private Vector3 lastInput = Vector3.zero;      // last key pressed, never cleared
+    private Vector3 currentInput = Vector3.zero;   // direction we are actually travelling
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        transform.position = waypoints[0].position;
-
-        if (movingAudioSource != null)
-        {
-            movingAudioSource.loop = true;
-            movingAudioSource.Play();
-        }
-
-        StartNextLeg();
+        transform.position = startPosition;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (!tweener.IsTweening(transform))
+        // Only changes lastInput when a new key is pressed
+        Keyboard kb = Keyboard.current;
+        if (kb != null)
         {
-            currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
-            StartNextLeg();
+            if (kb.aKey.wasPressedThisFrame) lastInput = Vector3.left;
+            if (kb.dKey.wasPressedThisFrame) lastInput = Vector3.right;
+            if (kb.sKey.wasPressedThisFrame) lastInput = Vector3.down;
+            if (kb.wKey.wasPressedThisFrame) lastInput = Vector3.up;
         }
-    }
 
-    private void StartNextLeg()
-    {
-        Vector3 startPos = transform.position;
-        Vector3 endPos = waypoints[(currentWaypointIndex + 1) % waypoints.Length].position;
+        if (tweener.IsTweening(transform)) return;
 
-        float distance = Vector3.Distance(startPos, endPos);
-        float duration = distance / speed;
-
-        tweener.AddTween(transform, startPos, endPos, duration);
-
-        UpdateAnimationDirection(endPos - startPos);
-    }
-
-    private void UpdateAnimationDirection(Vector3 direction)
-    {
-        if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+        if (TryMove(lastInput))
         {
-            animator.SetInteger("Direction", direction.x > 0 ? 3 : 2);  // Right : Left
+            currentInput = lastInput;
         }
         else
         {
-            animator.SetInteger("Direction", direction.y > 0 ? 1 : 0);  // Up : Down
+            TryMove(currentInput); 
         }
+    }
+
+    bool TryMove(Vector3 direction)
+    {
+        if (direction == Vector3.zero) return false;
+
+        Vector3 start = transform.position;
+        Vector3 end = start + direction;
+        if (!IsWalkable(end)) return false;
+
+        return tweener.AddTween(transform, start, end, 1f / tilesPerSecond);
+    }
+
+    bool IsWalkable(Vector3 worldPos)
+    {
+        foreach (Tilemap tm in tilemaps)
+        {
+            TileBase tile = tm.GetTile(tm.WorldToCell(worldPos));
+            if (tile != null && tile.name != "Grid Tiles_4" && tile.name != "Grid Tiles_5")
+                return false; // any tile that isn't a pellet is a wall
+        }
+        return true;
     }
 }

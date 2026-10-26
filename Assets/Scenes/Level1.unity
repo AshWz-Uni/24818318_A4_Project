@@ -9819,6 +9819,36 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &1785889429 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3141236940927001131, guid: add79359224428846bd9bbbc6709ae24, type: 3}
+  m_PrefabInstance: {fileID: 5387254461587682355}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1785889433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1785889429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d75c4c1207e27849a762b709f7c544c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
+  tweener: {fileID: 0}
+  animator: {fileID: 0}
+  tilemaps: []
+  tilesPerSecond: 5
+  startCell: {x: 1, y: 4}
+  minCell: {x: 0, y: -23}
+  maxCell: {x: 27, y: 5}
+  pelletTileNames:
+  - Grid Tiles_4
+  - Grid Tiles_5
+  movementAudio: {fileID: 0}
+  movingEatingClip: {fileID: 0}
+  movingNoPelletClip: {fileID: 0}
 --- !u!1 &1838194276
 GameObject:
   m_ObjectHideFlags: 0
@@ -12747,7 +12777,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3141236940927001131, guid: add79359224428846bd9bbbc6709ae24, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1785889433}
   m_SourcePrefab: {fileID: 100100000, guid: add79359224428846bd9bbbc6709ae24, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
